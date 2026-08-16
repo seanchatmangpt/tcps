@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document governs release claims, evidence ceilings, candidate promotion, replay, and retirement decisions.
+This document governs release claims, evidence ceilings, candidate promotion, replay, crash recovery, and retirement decisions.
 
 ## Claim ceilings
 
@@ -20,9 +20,30 @@ A lower ceiling must never be phrased as a higher ceiling.
 
 ## Release admission
 
-A v1979.1.1 candidate may be admitted only when all mandatory repository controls are present, identity-zero verification succeeds, source compiles, the unit/integration suite passes, a real CLI cycle emits receipts, replay returns `ALIVE`, and deterministic transport produces byte-identical bundles.
+A v1979.1.1 candidate may be admitted only when all mandatory repository controls are present and the complete release conjunction is true:
 
-Generation may be marked `GENERATED` only after the exact ggen projection command executes. If that toolchain is unavailable, the generation rail is `BLOCKED:GGEN_UNAVAILABLE`; source equivalence does not upgrade it.
+```text
+legacy_identity_residue = 0
+required_surface_missing = 0
+source_compile_failures = 0
+unit_integration_failures = 0
+fault_injection_failures = 0
+real_cli_cycle_failures = 0
+receipt_chain_failures = 0
+pending_recovery = 0
+replay_differences = 0
+offline_bundle_differences = 0
+ggen_projection_differences = 0
+exact_head_ci_failures = 0
+```
+
+Fault injection must cover the pre-receipt/DO/final-receipt crash windows, ledger writer exclusion, cross-plan sequence continuity, lawful same-target supersession, path alias refusal, implicit-parent refusal, incomplete final-line recovery, and post-state drift.
+
+Generation may be marked `GENERATED` only after the exact admitted ggen projector executes with its exact pinned toolchain and the generated projections are zero-diff. Source equivalence does not upgrade a blocked generation rail.
+
+## Merge admission
+
+The SHA merged to `main` must equal the exact PR head whose checks established the release conjunction. A synthetic merge coordinate, stale head, or unobserved successor is not admissible evidence.
 
 ## Production admission
 
