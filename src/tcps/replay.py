@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import Path, PurePath
 from typing import Any
 
 from .engine import _safe_target, _snapshot
@@ -18,6 +18,31 @@ def _drift_reason(operation: str, observed: dict[str, Any]) -> str:
     return "poststate-drift"
 
 
+def _apply_parent_membership(
+    logical: dict[str, dict[str, Any]],
+    latest: dict[str, tuple[dict[str, Any], dict[str, Any]]],
+    receipt: dict[str, Any],
+) -> None:
+    consequence = receipt["consequence"]
+    relative = PurePath(consequence["path"])
+    parent = str(relative.parent)
+    if parent == "." or parent not in logical:
+        return
+    state = logical[parent]
+    if state.get("kind") != "directory" or not isinstance(state.get("entries"), list):
+        return
+    entries = set(state["entries"])
+    before_absent = consequence["before"].get("kind") == "absent"
+    after_absent = consequence["after"].get("kind") == "absent"
+    if before_absent and not after_absent:
+        entries.add(relative.name)
+    elif not before_absent and after_absent:
+        entries.discard(relative.name)
+    updated = {"kind": "directory", "entries": sorted(entries)}
+    logical[parent] = updated
+    latest[parent] = (receipt, updated)
+
+
 def replay(path: Path, root: Path) -> dict[str, Any]:
     path = Path(path)
     root = Path(root).resolve()
@@ -25,25 +50,26 @@ def replay(path: Path, root: Path) -> dict[str, Any]:
     head = verify_chain(receipts)
     drift: list[dict[str, Any]] = []
 
-    # Earlier post-states may be lawfully superseded by later receipts on the
-    # same target. Prove ledger transition continuity, then compare the world
-    # against only the latest receipted state for each target.
-    logical_state: dict[str, dict[str, Any]] = {}
+    # Historical post-states may be lawfully superseded. Build the final
+    # receipted world, including directory membership caused by child acts,
+    # while checking direct transition continuity along the way.
+    logical: dict[str, dict[str, Any]] = {}
     latest: dict[str, tuple[dict[str, Any], dict[str, Any]]] = {}
     for receipt in receipts:
         consequence = receipt["consequence"]
         relative = consequence["path"]
-        if relative in logical_state and consequence["before"] != logical_state[relative]:
+        if relative in logical and consequence["before"] != logical[relative]:
             drift.append(
                 {
                     "receipt": receipt["receipt_id"],
                     "reason": "receipt-transition-mismatch",
                     "observed": consequence["before"],
-                    "expected": logical_state[relative],
+                    "expected": logical[relative],
                 }
             )
-        logical_state[relative] = consequence["after"]
+        logical[relative] = consequence["after"]
         latest[relative] = (receipt, consequence["after"])
+        _apply_parent_membership(logical, latest, receipt)
 
     for relative, (receipt, expected) in latest.items():
         target = _safe_target(root, relative)
