@@ -1,0 +1,34 @@
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+
+<urn:tcps:system>
+    a prov:Entity ;
+    dcterms:title "Toyota Code Production System 1979" ;
+    dcterms:hasVersion "1979.1.1" ;
+    dcterms:description "A deterministic code-production system that separates construction, selection, authorization, actuation, verification, receipt, and replay." ;
+    dcterms:conformsTo <urn:tcps:law:zero-unreceipted-actuation> .
+
+<urn:tcps:cycle> a skos:ConceptScheme ;
+    dcterms:title "TCPS production cycle" .
+
+<urn:tcps:stage:01> a skos:Concept ; skos:notation "OBSERVE" ; skos:prefLabel "Observe"@en ; skos:inScheme <urn:tcps:cycle> .
+<urn:tcps:stage:02> a skos:Concept ; skos:notation "ADMIT" ; skos:prefLabel "Admit"@en ; skos:inScheme <urn:tcps:cycle> .
+<urn:tcps:stage:03> a skos:Concept ; skos:notation "MODEL" ; skos:prefLabel "Model"@en ; skos:inScheme <urn:tcps:cycle> .
+<urn:tcps:stage:04> a skos:Concept ; skos:notation "SELECT" ; skos:prefLabel "Select"@en ; skos:inScheme <urn:tcps:cycle> .
+<urn:tcps:stage:05> a skos:Concept ; skos:notation "AUTHORIZE" ; skos:prefLabel "Authorize"@en ; skos:inScheme <urn:tcps:cycle> .
+<urn:tcps:stage:06> a skos:Concept ; skos:notation "ACTUATE" ; skos:prefLabel "Actuate"@en ; skos:inScheme <urn:tcps:cycle> .
+<urn:tcps:stage:07> a skos:Concept ; skos:notation "VERIFY" ; skos:prefLabel "Verify"@en ; skos:inScheme <urn:tcps:cycle> .
+<urn:tcps:stage:08> a skos:Concept ; skos:notation "RECEIPT" ; skos:prefLabel "Receipt"@en ; skos:inScheme <urn:tcps:cycle> .
+<urn:tcps:stage:09> a skos:Concept ; skos:notation "REOBSERVE" ; skos:prefLabel "Reobserve"@en ; skos:inScheme <urn:tcps:cycle> .
+
+<urn:tcps:role:eve> a prov:Agent ; skos:notation "EVE" ; dcterms:language "en" ; dcterms:description "Human-purpose intake and observation normalization." .
+<urn:tcps:role:wizard> a prov:Agent ; skos:notation "WIZARD" ; dcterms:language "zh-CN" ; dcterms:description "Manufacturing and reversible candidate construction." .
+<urn:tcps:role:telco> a prov:Agent ; skos:notation "TELCO" ; dcterms:language "ja-JP" ; dcterms:description "Capability routing, selection, and authority binding." .
+<urn:tcps:role:robot> a prov:Agent ; skos:notation "ROBOT" ; dcterms:language "ko-KR" ; dcterms:description "Exact execution, verification, receipt, and replay handoff." .
+
+<urn:tcps:law:zero-unreceipted-actuation>
+    a odrl:Policy ;
+    dcterms:title "Zero unreceipted actuation" ;
+    dcterms:description "No consequential actuation has production standing without an exact postcondition and tamper-evident receipt." .

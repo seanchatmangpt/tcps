@@ -1,0 +1,16 @@
+# {{ title }} — generated contract
+
+Version: `{{ version }}`
+
+Production cycle:
+
+`{{ s01 }} → {{ s02 }} → {{ s03 }} → {{ s04 }} → {{ s05 }} → {{ s06 }} → {{ s07 }} → {{ s08 }} → {{ s09 }}`
+
+Role projections:
+
+- `{{ eve }}` — `{{ eve_lang }}`
+- `{{ wizard }}` — `{{ wizard_lang }}`
+- `{{ telco }}` — `{{ telco_lang }}`
+- `{{ robot }}` — `{{ robot_lang }}`
+
+This file is a projection. `ontology/tcps.ttl` remains the semantic source.

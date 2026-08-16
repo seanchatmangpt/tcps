@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tcps:schema:work:v1",
+  "title": "TCPS Work Order v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "subject", "purpose", "observations", "actions"],
+  "properties": {
+    "schema": {"const": "tcps.work.v1"},
+    "subject": {"type": "string", "minLength": 1},
+    "purpose": {"type": "string", "minLength": 1},
+    "observations": {"type": "array", "items": {"type": "object"}},
+    "actions": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["op", "path"],
+            "properties": {"op": {"const": "mkdir"}, "path": {"type": "string", "minLength": 1}}
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["op", "path", "content"],
+            "properties": {
+              "op": {"const": "write_text"},
+              "path": {"type": "string", "minLength": 1},
+              "content": {"type": "string"}
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["op", "path"],
+            "properties": {"op": {"const": "remove"}, "path": {"type": "string", "minLength": 1}}
+          }
+        ]
+      }
+    }
+  }
+}

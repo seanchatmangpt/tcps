@@ -1,0 +1,18 @@
+{
+  "schema": "tcps.release.v1",
+  "version": "1979.1.1",
+  "required": {
+    "legacy_identity_residue": 0,
+    "required_authority_missing": 0,
+    "required_enterprise_surface_missing": 0,
+    "source_compile_failures": 0,
+    "unit_integration_failures": 0,
+    "real_cli_cycle_failures": 0,
+    "receipt_chain_failures": 0,
+    "replay_differences": 0,
+    "offline_bundle_differences": 0
+  },
+  "generation_requires_observed_ggen_execution": true,
+  "external_production_requires_separate_evidence": true,
+  "certification_claims": "REFUSED:UNSUPPORTED_CLAIM"
+}

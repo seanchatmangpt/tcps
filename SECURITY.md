@@ -1,31 +1,26 @@
-# Security Policy
+# Security policy
 
-Thanks for helping make GitHub safe for everyone.
+TCPS treats arbitrary execution authority as a security boundary, not a convenience feature.
 
-GitHub takes the security of our software products and services seriously, including all of the open source code repositories managed through our GitHub organizations, such as [GitHub](https://github.com/GitHub).
+## Supported line
 
-Even though [open source repositories are outside of the scope of our bug bounty program](https://bounty.github.com/index.html#scope) and therefore not eligible for bounty rewards, we will ensure that your finding gets passed along to the appropriate maintainers for remediation.
+Security fixes target the active `1979.1.x` line unless a release notice states otherwise.
 
-## Reporting Security Issues
+## Report privately
 
-If you believe you have found a security vulnerability in any GitHub-owned repository, please report it to us through coordinated disclosure.
+Do not publish exploit details in an issue before coordinated disclosure. Use GitHub private vulnerability reporting for this repository when available.
 
-**Please do not report security vulnerabilities through public GitHub issues, discussions, or pull requests.**
+## Security invariants
 
-Instead, please send an email to opensource-security[@]github.com.
+- default-deny actuation policy;
+- no ambient shell or network actuator;
+- repository-root confinement after canonical path resolution;
+- irreversible operations disabled by default;
+- BLAKE3 receipt identity and predecessor chaining;
+- exact postcondition verification before standing;
+- read-only CI permissions by default;
+- pinned build/test dependencies where external packages are required;
+- generated projections are never authority;
+- credentials and secrets are outside the work-order schema.
 
-Please include as much of the information listed below as you can to help us better understand and resolve the issue:
-
-- The type of issue (e.g., buffer overflow, SQL injection, or cross-site scripting)
-- Full paths of source file(s) related to the manifestation of the issue
-- The location of the affected source code (tag/branch/commit or direct URL)
-- Any special configuration required to reproduce the issue
-- Step-by-step instructions to reproduce the issue
-- Proof-of-concept or exploit code (if possible)
-- Impact of the issue, including how an attacker might exploit the issue
-
-This information will help us triage your report more quickly.
-
-## Policy
-
-See [GitHub's Safe Harbor Policy](https://docs.github.com/en/site-policy/security-policies/github-bug-bounty-program-legal-safe-harbor#1-safe-harbor-terms)
+A security control described here is a design/control claim, not a certification claim.
