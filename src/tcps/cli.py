@@ -2,16 +2,15 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from .authority import load_authority
 from .canonical import load_json, write_json
-from .engine import actuate, append_receipts, construct, observe, select_and_authorize
+from .engine import actuate, construct, observe, recover, select_and_authorize
+from .generated_contract import SYSTEM_NAME, VERSION
 from .model import TCPSRefused
 from .replay import replay
-from .generated_contract import SYSTEM_NAME, VERSION
 
 
 def _emit(value: Any) -> None:
@@ -56,6 +55,10 @@ def _parser() -> argparse.ArgumentParser:
     replay_parser = sub.add_parser("replay", help="verify receipt chain and current consequences")
     replay_parser.add_argument("--receipts", default=".tcps/receipts.ndjson")
     replay_parser.add_argument("--root", default=".")
+
+    recover_parser = sub.add_parser("recover", help="close or abort an interrupted actuation")
+    recover_parser.add_argument("--receipts", default=".tcps/receipts.ndjson")
+    recover_parser.add_argument("--root", default=".")
 
     return parser
 
@@ -110,8 +113,12 @@ def main(argv: list[str] | None = None) -> int:
             _write_or_emit(value, args.out)
             return 0
         if args.command == "robot":
-            receipts = actuate(load_json(args.plan), load_authority(args.authority), Path(args.root))
-            append_receipts(Path(args.receipts), receipts)
+            receipts = actuate(
+                load_json(args.plan),
+                load_authority(args.authority),
+                Path(args.root),
+                Path(args.receipts),
+            )
             _emit({"state": "ALIVE", "receipts": receipts})
             return 0
         if args.command == "run":
@@ -121,8 +128,7 @@ def main(argv: list[str] | None = None) -> int:
             graph = construct(observation)
             plan = select_and_authorize(graph, policy, Path(args.root))
             write_json(args.plan_out, plan)
-            receipts = actuate(plan, policy, Path(args.root))
-            append_receipts(Path(args.receipts), receipts)
+            receipts = actuate(plan, policy, Path(args.root), Path(args.receipts))
             _emit(
                 {
                     "state": "ALIVE",
@@ -137,6 +143,10 @@ def main(argv: list[str] | None = None) -> int:
             result = replay(Path(args.receipts), Path(args.root))
             _emit(result)
             return 0 if result["state"] == "ALIVE" else 3
+        if args.command == "recover":
+            result = recover(Path(args.receipts), Path(args.root))
+            _emit(result)
+            return 0 if result["state"] in {"ALIVE", "PARTIAL_ALIVE"} else 3
         raise AssertionError("unreachable")
     except TCPSRefused as exc:
         _emit(exc.refusal.as_dict())
