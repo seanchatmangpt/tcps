@@ -25,17 +25,35 @@ def replay(path: Path, root: Path) -> dict[str, Any]:
     head = verify_chain(receipts)
     drift: list[dict[str, Any]] = []
 
+    # Earlier post-states may be lawfully superseded by later receipts on the
+    # same target. Prove ledger transition continuity, then compare the world
+    # against only the latest receipted state for each target.
+    logical_state: dict[str, dict[str, Any]] = {}
+    latest: dict[str, tuple[dict[str, Any], dict[str, Any]]] = {}
     for receipt in receipts:
         consequence = receipt["consequence"]
-        target = _safe_target(root, consequence["path"])
-        current = _snapshot(target)
-        expected = consequence["after"]
-        if current != expected:
+        relative = consequence["path"]
+        if relative in logical_state and consequence["before"] != logical_state[relative]:
             drift.append(
                 {
                     "receipt": receipt["receipt_id"],
-                    "reason": _drift_reason(consequence["op"], current),
-                    "observed": current,
+                    "reason": "receipt-transition-mismatch",
+                    "observed": consequence["before"],
+                    "expected": logical_state[relative],
+                }
+            )
+        logical_state[relative] = consequence["after"]
+        latest[relative] = (receipt, consequence["after"])
+
+    for relative, (receipt, expected) in latest.items():
+        target = _safe_target(root, relative)
+        observed = _snapshot(target)
+        if observed != expected:
+            drift.append(
+                {
+                    "receipt": receipt["receipt_id"],
+                    "reason": _drift_reason(receipt["consequence"]["op"], observed),
+                    "observed": observed,
                     "expected": expected,
                 }
             )
