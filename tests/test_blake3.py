@@ -19,7 +19,7 @@ def test_blake3_official_block_boundary_vector():
 
 
 def test_blake3_official_chunk_boundary_vector():
-    assert hexdigest(_official_input(1024)) == "42214739f095a406f3fc83deb889744ac00df831c10daa55189b5d121c855af"
+    assert hexdigest(_official_input(1024)) == "42214739f095a406f3fc83deb889744ac00df831c10daa55189b5d121c855af7"
 
 
 def test_blake3_official_first_tree_transition_vector():
