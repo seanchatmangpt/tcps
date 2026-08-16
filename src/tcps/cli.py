@@ -10,11 +10,21 @@ from .canonical import load_json, write_json
 from .engine import actuate, construct, observe, recover, select_and_authorize
 from .generated_contract import SYSTEM_NAME, VERSION
 from .model import TCPSRefused
+from .packs import builtin_pack, install_pack, installed_packs, load_pack
+from .plant import andon, kanban, kaizen, metrics, standard_work, standing, wip
 from .replay import replay
 
 
 def _emit(value: Any) -> None:
     print(json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2))
+
+
+def _add_cycle_args(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("work")
+    parser.add_argument("--authority", default=".tcps/authority.json")
+    parser.add_argument("--root", default=".")
+    parser.add_argument("--receipts", default=".tcps/receipts.ndjson")
+    parser.add_argument("--plan-out", default=".tcps/last-plan.json")
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -46,11 +56,9 @@ def _parser() -> argparse.ArgumentParser:
     robot.add_argument("--receipts", default=".tcps/receipts.ndjson")
 
     run = sub.add_parser("run", help="execute the complete deterministic production cycle")
-    run.add_argument("work")
-    run.add_argument("--authority", default=".tcps/authority.json")
-    run.add_argument("--root", default=".")
-    run.add_argument("--receipts", default=".tcps/receipts.ndjson")
-    run.add_argument("--plan-out", default=".tcps/last-plan.json")
+    _add_cycle_args(run)
+    make = sub.add_parser("make", help="pull one customer demand through the full production line")
+    _add_cycle_args(make)
 
     replay_parser = sub.add_parser("replay", help="verify receipt chain and current consequences")
     replay_parser.add_argument("--receipts", default=".tcps/receipts.ndjson")
@@ -59,6 +67,42 @@ def _parser() -> argparse.ArgumentParser:
     recover_parser = sub.add_parser("recover", help="close or abort an interrupted actuation")
     recover_parser.add_argument("--receipts", default=".tcps/receipts.ndjson")
     recover_parser.add_argument("--root", default=".")
+
+    sub.add_parser("standard", help="emit canonical machine-readable standard work")
+
+    kanban_parser = sub.add_parser("kanban", help="manufacture a downstream demand token")
+    kanban_parser.add_argument("subject")
+    kanban_parser.add_argument("purpose")
+    kanban_parser.add_argument("--quantity", type=int, default=1)
+    kanban_parser.add_argument("--due-tick", type=int)
+
+    for name, help_text in (
+        ("wip", "observe semantic actuation WIP"),
+        ("andon", "observe the production-line signal"),
+        ("metrics", "derive production metrics from receipts"),
+        ("standing", "derive current standing from replay"),
+    ):
+        item = sub.add_parser(name, help=help_text)
+        item.add_argument("--receipts", default=".tcps/receipts.ndjson")
+        if name != "wip":
+            item.add_argument("--root", default=".")
+
+    kaizen_parser = sub.add_parser("kaizen", help="construct a non-actuating improvement candidate")
+    kaizen_parser.add_argument("reason")
+    kaizen_parser.add_argument("proposal")
+
+    pack = sub.add_parser("pack", help="manage receipted production packs")
+    pack_sub = pack.add_subparsers(dest="pack_command", required=True)
+    pack_sub.add_parser("builtins", help="list built-in production packs")
+    pack_list = pack_sub.add_parser("list", help="list installed production packs")
+    pack_list.add_argument("--root", default=".")
+    pack_validate = pack_sub.add_parser("validate", help="validate a built-in or local pack manifest")
+    pack_validate.add_argument("source")
+    pack_install = pack_sub.add_parser("install", help="install a pack through the full receipt boundary")
+    pack_install.add_argument("source", nargs="?", default="builtin:core-1979")
+    pack_install.add_argument("--root", default=".")
+    pack_install.add_argument("--authority", default=".tcps/authority.json")
+    pack_install.add_argument("--receipts", default=".tcps/receipts.ndjson")
 
     return parser
 
@@ -89,7 +133,29 @@ def _init(path: Path) -> dict[str, Any]:
         )
     receipts = tcps_dir / "receipts.ndjson"
     receipts.touch(exist_ok=True)
-    return {"state": "PARTIAL_ALIVE", "workspace": str(path), "authority": str(authority_path)}
+    return {
+        "state": "PARTIAL_ALIVE",
+        "workspace": str(path),
+        "authority": str(authority_path),
+        "next_pull": "tcps pack install builtin:core-1979",
+    }
+
+
+def _run_cycle(args: argparse.Namespace) -> dict[str, Any]:
+    work = load_json(args.work)
+    policy = load_authority(args.authority)
+    observation = observe(work)
+    graph = construct(observation)
+    plan = select_and_authorize(graph, policy, Path(args.root))
+    write_json(args.plan_out, plan)
+    receipts = actuate(plan, policy, Path(args.root), Path(args.receipts))
+    return {
+        "state": "ALIVE",
+        "subject": plan["subject"],
+        "plan_digest": plan["plan_digest"],
+        "receipt_count": len(receipts),
+        "receipt_head": receipts[-1]["receipt_id"] if receipts else None,
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -99,45 +165,21 @@ def main(argv: list[str] | None = None) -> int:
             _emit(_init(Path(args.path)))
             return 0
         if args.command == "eve":
-            value = observe(load_json(args.work))
-            _write_or_emit(value, args.out)
+            _write_or_emit(observe(load_json(args.work)), args.out)
             return 0
         if args.command == "wizard":
-            value = construct(load_json(args.observation))
-            _write_or_emit(value, args.out)
+            _write_or_emit(construct(load_json(args.observation)), args.out)
             return 0
         if args.command == "telco":
-            value = select_and_authorize(
-                load_json(args.graph), load_authority(args.authority), Path(args.root)
-            )
+            value = select_and_authorize(load_json(args.graph), load_authority(args.authority), Path(args.root))
             _write_or_emit(value, args.out)
             return 0
         if args.command == "robot":
-            receipts = actuate(
-                load_json(args.plan),
-                load_authority(args.authority),
-                Path(args.root),
-                Path(args.receipts),
-            )
+            receipts = actuate(load_json(args.plan), load_authority(args.authority), Path(args.root), Path(args.receipts))
             _emit({"state": "ALIVE", "receipts": receipts})
             return 0
-        if args.command == "run":
-            work = load_json(args.work)
-            policy = load_authority(args.authority)
-            observation = observe(work)
-            graph = construct(observation)
-            plan = select_and_authorize(graph, policy, Path(args.root))
-            write_json(args.plan_out, plan)
-            receipts = actuate(plan, policy, Path(args.root), Path(args.receipts))
-            _emit(
-                {
-                    "state": "ALIVE",
-                    "subject": plan["subject"],
-                    "plan_digest": plan["plan_digest"],
-                    "receipt_count": len(receipts),
-                    "receipt_head": receipts[-1]["receipt_id"] if receipts else None,
-                }
-            )
+        if args.command in {"run", "make"}:
+            _emit(_run_cycle(args))
             return 0
         if args.command == "replay":
             result = replay(Path(args.receipts), Path(args.root))
@@ -147,19 +189,56 @@ def main(argv: list[str] | None = None) -> int:
             result = recover(Path(args.receipts), Path(args.root))
             _emit(result)
             return 0 if result["state"] in {"ALIVE", "PARTIAL_ALIVE"} else 3
+        if args.command == "standard":
+            _emit(standard_work())
+            return 0
+        if args.command == "kanban":
+            _emit(kanban(args.subject, args.purpose, quantity=args.quantity, due_tick=args.due_tick))
+            return 0
+        if args.command == "wip":
+            _emit(wip(Path(args.receipts)))
+            return 0
+        if args.command == "andon":
+            result = andon(Path(args.receipts), Path(args.root))
+            _emit(result)
+            return 0 if result["state"] in {"ALIVE", "PARTIAL_ALIVE"} else 3
+        if args.command == "metrics":
+            result = metrics(Path(args.receipts), Path(args.root))
+            _emit(result)
+            return 0 if result["state"] in {"ALIVE", "PARTIAL_ALIVE"} else 3
+        if args.command == "standing":
+            result = standing(Path(args.receipts), Path(args.root))
+            _emit(result)
+            return 0 if result["state"] in {"ALIVE", "PARTIAL_ALIVE"} else 3
+        if args.command == "kaizen":
+            _emit(kaizen(args.reason, args.proposal))
+            return 0
+        if args.command == "pack":
+            if args.pack_command == "builtins":
+                core = builtin_pack("core-1979")
+                _emit({"schema": "tcps.pack-builtins.v1", "packs": [{"pack_id": core["pack_id"], "version": core["version"], "kind": core["kind"], "pack_digest": core["pack_digest"]}], "state": "ALIVE"})
+                return 0
+            if args.pack_command == "list":
+                result = installed_packs(Path(args.root))
+                _emit(result)
+                return 0 if result["state"] == "ALIVE" else 3
+            if args.pack_command == "validate":
+                pack_value = load_pack(args.source)
+                _emit({"schema": "tcps.pack-validation.v1", "pack_id": pack_value["pack_id"], "pack_digest": pack_value["pack_digest"], "state": "ALIVE"})
+                return 0
+            if args.pack_command == "install":
+                result = install_pack(args.source, root=Path(args.root), authority_path=Path(args.authority), receipt_path=Path(args.receipts))
+                _emit(result)
+                return 0
         raise AssertionError("unreachable")
     except TCPSRefused as exc:
         _emit(exc.refusal.as_dict())
         return 2
+    except ValueError as exc:
+        _emit({"state": "REFUSED:CONTROL_INPUT_INVALID", "code": "CONTROL_INPUT_INVALID", "observed": str(exc), "repair": "supply a value admitted by the control-plane schema"})
+        return 2
     except FileNotFoundError as exc:
-        _emit(
-            {
-                "state": "BLOCKED",
-                "code": "INPUT_NOT_FOUND",
-                "path": str(exc.filename),
-                "repair": "provide the declared input without changing authority",
-            }
-        )
+        _emit({"state": "BLOCKED", "code": "INPUT_NOT_FOUND", "path": str(exc.filename), "repair": "provide the declared input without changing authority"})
         return 4
 
 
