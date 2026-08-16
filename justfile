@@ -13,4 +13,4 @@ bundle:
     python3 scripts/build_offline_bundle.py --check-determinism
 
 project:
-    ggen sync --manifest ggen.toml --profile enterprise-strict --audit
+    ggen sync run

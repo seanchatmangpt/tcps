@@ -100,7 +100,7 @@ Canonical authority order:
 The semantic source is `ontology/tcps.ttl`. `ggen.toml` projects the runtime contract and generated contract documentation. Generated artifacts are not independent authority.
 
 ```bash
-ggen sync --manifest ggen.toml --profile enterprise-strict --audit
+ggen sync run
 python3 scripts/verify_reconstitution.py
 python3 scripts/verify_repository.py
 PYTHONPATH=src pytest -q

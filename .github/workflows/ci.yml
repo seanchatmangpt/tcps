@@ -57,6 +57,6 @@ jobs:
           RUSTC_WRAPPER: ""
         run: cargo install --path .ggen-projector/crates/ggen-cli --locked
       - name: Replay ontology projection
-        run: ggen sync --manifest ggen.toml --profile enterprise-strict --audit
+        run: ggen sync run
       - name: Assert generated projections are current
         run: git diff --exit-code -- src/tcps/generated_contract.py generated_contract.md
