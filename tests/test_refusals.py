@@ -41,7 +41,7 @@ def test_irreversible_action_defaults_to_refused(tmp_path: Path):
     assert exc.value.refusal.state == "REFUSED:IRREVERSIBLE_OPERATION_NOT_AUTHORIZED"
 
 
-def test_root_escape_is_refused(tmp_path: Path):
+def test_dot_traversal_is_refused_before_mutation(tmp_path: Path):
     work = {
         "schema": "tcps.work.v1",
         "subject": "x",
@@ -62,4 +62,5 @@ def test_root_escape_is_refused(tmp_path: Path):
     from tcps.engine import actuate
     with pytest.raises(TCPSRefused) as exc:
         actuate(plan, policy, tmp_path)
-    assert exc.value.refusal.state == "REFUSED:TARGET_ESCAPES_ROOT"
+    assert exc.value.refusal.state == "REFUSED:TARGET_PATH_INVALID"
+    assert not (tmp_path.parent / "escape.txt").exists()
