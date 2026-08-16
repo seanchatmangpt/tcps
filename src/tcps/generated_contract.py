@@ -7,6 +7,7 @@ CYCLE = (
     "MODEL",
     "SELECT",
     "AUTHORIZE",
+    "PREPARE",
     "ACTUATE",
     "VERIFY",
     "RECEIPT",
