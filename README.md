@@ -2,43 +2,39 @@
 
 **Toyota Code Production System 1979** is a deterministic production CLI for manufacturing code changes under explicit authority.
 
-TCPS does not treat a plan, model output, prompt, or selected candidate as execution authority. Production standing exists only after an admitted action crosses the actuation boundary, its exact consequence is independently checked, and a tamper-evident receipt is chained for replay.
+TCPS does not treat a plan, model output, prompt, or selected candidate as execution authority. Production standing exists only after an admitted action crosses a bounded actuation boundary, its exact consequence is independently checked, and durable evidence can be replayed.
 
 ```text
-Observe → Admit → Model → Select → Authorize → Actuate → Verify → Receipt → Reobserve
+Observe → Admit → Model → Select → Authorize → Prepare → Actuate → Verify → Receipt → Reobserve
 ```
-
-The operating law is simple:
 
 ```text
 A = μ(O*)
 R = receipt(A)
 ```
 
-`O*` is admitted and bounded observation. `μ` is lawful manufacture. `A` is the observed consequence. `R` binds the consequence to authority, intent, verification, prior receipt, and replay.
+`O*` is admitted and bounded observation. `μ` is lawful manufacture. `A` is the observed consequence. `R` binds consequence to authority, intent, prior evidence, verification, and replay.
 
-## Product boundary
+## Production boundary
 
 TCPS separates three planes:
 
 - **SELECT** preserves and chooses lawful reversible candidates.
-- **CONSTRUCT** manufactures plans, projections, and intents without ambient execution authority.
-- **DO** crosses the consequential boundary only through an admitted plan and emits a receipt for every action.
+- **CONSTRUCT** manufactures graphs, plans, projections, and intents without ambient execution authority.
+- **DO** crosses the consequential boundary only through an admitted plan and durable pre-receipt.
 
-The current built-in actuation surface is deliberately small: `mkdir`, `write_text`, and explicitly authorized `remove`. Arbitrary shell execution, network calls, package installation, deployment, secrets access, and recursive deletion are not ambient capabilities.
+The v1979.1.1 built-in actuation surface is deliberately closed: `mkdir`, `write_text`, and explicitly authorized `remove`. Arbitrary shell execution, network calls, package installation, deployment, secrets access, recursive deletion, implicit parent creation, and symlink alias actuation are not ambient capabilities.
 
 ## Role projections
 
-The same production calculus is projected through four progressively narrower interfaces:
-
 | Role | Language | Responsibility |
 |---|---|---|
-| `EVE` | English | Purpose intake and observation normalization |
+| `EVE` | English | Purpose intake and observation admission |
 | `WIZARD` | 中文 | Reversible manufacturing and candidate construction |
-| `TELCO` | 日本語 | Capability routing, selection, and authority binding |
-| `ROBOT` | 한국어 | Exact execution, verification, receipt, and replay handoff |
+| `TELCO` | 日本語 | Selection, routing, and exact authority binding |
+| `ROBOT` | 한국어 | Exact DO, post-state verification, receipt, and recovery handoff |
 
-The language projection does not change authority. Each downstream role receives less freedom and more exact machine state.
+The language projection is a presentation boundary, not authority. Each downstream role receives less semantic freedom and more exact machine state.
 
 ## Quick start
 
@@ -46,8 +42,6 @@ The language projection does not change authority. Each downstream role receives
 python -m pip install -e '.[test]'
 tcps init .
 ```
-
-Create a work order:
 
 ```json
 {
@@ -61,14 +55,12 @@ Create a work order:
 }
 ```
 
-Then execute the full cycle:
-
 ```bash
 tcps run work.json --root .
 tcps replay --root .
 ```
 
-Or inspect each production stage explicitly:
+Stage-by-stage:
 
 ```bash
 tcps eve work.json --out .tcps/observation.json
@@ -78,9 +70,23 @@ tcps robot .tcps/plan.json --root .
 tcps replay --root .
 ```
 
+## Crash-safe receipt law
+
+Before every consequential mutation, `ROBOT` writes and fsyncs a BLAKE3-addressed pre-receipt containing the exact plan, authority, root, operation, before-state, and expected post-state. The target mutation is then made durable, re-observed, and closed by a fsynced final receipt. Only after that final receipt is durable is pending recovery state removed.
+
+One ledger has one writer and one monotonically increasing sequence across all plans.
+
+If execution is interrupted:
+
+```bash
+tcps recover --receipts .tcps/receipts.ndjson --root .
+```
+
+Recovery never guesses. It can prove and close an already-actuated expected state, abort a prepared-but-unactuated state, clear cleanup left after an already-durable final receipt, or return `BLOCKED:RECOVERY_AMBIGUOUS`.
+
 ## Enterprise shape
 
-The repository carries product, architecture, governance, security, privacy, resilience, operations, support, procurement, supply-chain, evidence, release, offline transport, and retirement controls. These controls define the decision surface; they do not claim certification or external deployment.
+The repository carries product, architecture, governance, security, privacy, resilience, operations, support, procurement, supply-chain, evidence, release, offline transport, retirement, formal validation, fault injection, and exact-head CI controls. These controls define an enterprise decision surface; they do not claim external certification or a named production deployment.
 
 Canonical authority order:
 
@@ -91,24 +97,25 @@ Canonical authority order:
 5. `product/PRD.md`
 6. `architecture/ARD.md`
 7. schemas and executable verifier contracts
-8. implementation and tests
+8. implementation and fault-injection tests
 9. explanatory documentation
 10. generated projections
 
-## Manufacture and verify
+## Manufacture and validate
 
-The semantic source is `ontology/tcps.ttl`. `ggen.toml` projects the runtime contract and generated contract documentation. Generated artifacts are not independent authority.
+`ontology/tcps.ttl` is the semantic source for the generated contract. The admitted ggen projector must execute with its exact pinned toolchain and reproduce generated artifacts with zero diff.
 
 ```bash
 ggen sync run
 python3 scripts/verify_reconstitution.py
 python3 scripts/verify_repository.py
 PYTHONPATH=src pytest -q
+python3 scripts/release_verifier.py
 python3 scripts/build_offline_bundle.py --check-determinism
 ```
 
-If the ggen runtime is unavailable, generation standing is `BLOCKED`, not silently promoted from source inspection.
+The full release theorem and falsifiers are in `validation/VALIDATION_THEOREM.md` and `RELEASE_CONTROL.md`.
 
 ## Standing
 
-The repository can establish local `ALIVE` only for an exact subject actually executed through the full bounded cycle. Repository-wide production, compliance, certification, and external Fortune 5 deployment remain separate claims requiring their own evidence.
+`ALIVE` is scoped to the exact subject actually executed and verified. Repository release admission, external production proof, regulatory certification, and universal correctness are distinct claims. TCPS does not promote one into another.
