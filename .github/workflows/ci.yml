@@ -52,10 +52,15 @@ jobs:
           git clone --filter=blob:none https://github.com/seanchatmangpt/ggen.git .ggen-projector
           git -C .ggen-projector checkout --detach 59c95cac18d49c62533918c906524be0fc4063ec
           test "$(git -C .ggen-projector rev-parse HEAD)" = "59c95cac18d49c62533918c906524be0fc4063ec"
+          grep -q 'channel = "nightly-2026-06-22"' .ggen-projector/rust-toolchain.toml
+      - name: Install exact ggen Rust toolchain
+        run: |
+          rustup toolchain install nightly-2026-06-22 --profile minimal
+          test "$(rustc +nightly-2026-06-22 --version | awk '{print $1}')" = "rustc"
       - name: Build projector
         env:
           RUSTC_WRAPPER: ""
-        run: cargo install --path .ggen-projector/crates/ggen-cli --locked
+        run: cargo +nightly-2026-06-22 install --path .ggen-projector/crates/ggen-cli --locked
       - name: Replay ontology projection
         run: ggen sync run
       - name: Assert generated projections are current
