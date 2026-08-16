@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .blake3_ref import hexdigest
+from .model import Refusal, TCPSRefused
 
 
 def canonical_json(value: Any) -> bytes:
@@ -16,7 +17,20 @@ def digest_object(value: Any) -> str:
 
 
 def load_json(path: str | Path) -> Any:
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    source = Path(path)
+    try:
+        return json.loads(source.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise TCPSRefused(
+            Refusal(
+                "INPUT_INVALID_JSON",
+                str(source),
+                "production inputs are valid JSON before admission",
+                {"line": exc.lineno, "column": exc.colno, "message": exc.msg},
+                "valid JSON",
+                "repair the input without changing its authority",
+            )
+        ) from exc
 
 
 def write_json(path: str | Path, value: Any) -> None:
