@@ -14,6 +14,7 @@ def test_standard_work_is_deterministic_and_complete():
         "MODEL",
         "SELECT",
         "AUTHORIZE",
+        "PREPARE",
         "ACTUATE",
         "VERIFY",
         "RECEIPT",
