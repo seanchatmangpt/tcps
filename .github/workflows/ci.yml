@@ -21,6 +21,9 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact source identity
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
       - name: Python 3.11
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
@@ -41,12 +44,17 @@ jobs:
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact source identity
+        run: test "$(git rev-parse HEAD)" = "${{ github.event.pull_request.head.sha || github.sha }}"
       - name: Materialize exact ggen projector
         run: |
           git clone --filter=blob:none https://github.com/seanchatmangpt/ggen.git .ggen-projector
           git -C .ggen-projector checkout --detach 59c95cac18d49c62533918c906524be0fc4063ec
           test "$(git -C .ggen-projector rev-parse HEAD)" = "59c95cac18d49c62533918c906524be0fc4063ec"
       - name: Build projector
+        env:
+          RUSTC_WRAPPER: ""
         run: cargo install --path .ggen-projector/crates/ggen-cli --locked
       - name: Replay ontology projection
         run: ggen sync --manifest ggen.toml --profile enterprise-strict --audit
