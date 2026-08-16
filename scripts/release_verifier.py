@@ -9,75 +9,56 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+PYENV = {"PYTHONPATH": str(ROOT / "src")}
 
 
 def run(command: list[str], *, env: dict[str, str] | None = None) -> dict[str, object]:
     merged = os.environ.copy()
-    if env:
-        merged.update(env)
+    merged.update(env or {})
     proc = subprocess.run(command, cwd=ROOT, text=True, capture_output=True, env=merged, check=False)
-    return {"command": command, "exit": proc.returncode, "stdout": proc.stdout[-4000:], "stderr": proc.stderr[-4000:]}
+    return {"command": command, "exit": proc.returncode, "stdout": proc.stdout[-6000:], "stderr": proc.stderr[-6000:]}
+
+
+def tcps(*args: str) -> list[str]:
+    return [sys.executable, "-m", "tcps", *args]
 
 
 def main() -> int:
-    checks: list[dict[str, object]] = []
-    checks.append(run([sys.executable, "scripts/verify_reconstitution.py"]))
-    checks.append(run([sys.executable, "scripts/verify_repository.py"]))
-    checks.append(run([sys.executable, "-m", "compileall", "-q", "src"]))
-    checks.append(run([sys.executable, "-m", "pytest", "-q"], env={"PYTHONPATH": str(ROOT / "src")}))
+    checks: list[dict[str, object]] = [
+        run([sys.executable, "scripts/verify_reconstitution.py"]),
+        run([sys.executable, "scripts/verify_repository.py"]),
+        run([sys.executable, "-m", "compileall", "-q", "src"]),
+        run([sys.executable, "-m", "pytest", "-q"], env=PYENV),
+    ]
 
     with tempfile.TemporaryDirectory() as temp:
-        temp_root = Path(temp)
-        init = run([sys.executable, "-m", "tcps", "init", str(temp_root)], env={"PYTHONPATH": str(ROOT / "src")})
-        checks.append(init)
-        work = temp_root / "work.json"
-        work.write_text(
-            json.dumps(
-                {
-                    "schema": "tcps.work.v1",
-                    "subject": "release-witness",
-                    "purpose": "prove exact receipted production",
-                    "observations": [{"kind": "release", "value": "witness"}],
-                    "actions": [{"op": "write_text", "path": "witness.txt", "content": "heijunka\n"}],
-                }
-            ),
-            encoding="utf-8",
-        )
-        checks.append(
-            run(
-                [
-                    sys.executable,
-                    "-m",
-                    "tcps",
-                    "run",
-                    str(work),
-                    "--authority",
-                    str(temp_root / ".tcps/authority.json"),
-                    "--root",
-                    str(temp_root),
-                    "--receipts",
-                    str(temp_root / ".tcps/receipts.ndjson"),
-                    "--plan-out",
-                    str(temp_root / ".tcps/last-plan.json"),
-                ],
-                env={"PYTHONPATH": str(ROOT / "src")},
-            )
-        )
-        checks.append(
-            run(
-                [
-                    sys.executable,
-                    "-m",
-                    "tcps",
-                    "replay",
-                    "--receipts",
-                    str(temp_root / ".tcps/receipts.ndjson"),
-                    "--root",
-                    str(temp_root),
-                ],
-                env={"PYTHONPATH": str(ROOT / "src")},
-            )
-        )
+        root = Path(temp)
+        authority = root / ".tcps/authority.json"
+        receipts = root / ".tcps/receipts.ndjson"
+        plan = root / ".tcps/last-plan.json"
+
+        checks.append(run(tcps("init", str(root)), env=PYENV))
+        checks.append(run(tcps("standard"), env=PYENV))
+        checks.append(run(tcps("kanban", "release-witness", "downstream release admission", "--quantity", "1", "--due-tick", "1"), env=PYENV))
+        checks.append(run(tcps("pack", "validate", "builtin:core-1979"), env=PYENV))
+        checks.append(run(tcps("pack", "install", "builtin:core-1979", "--root", str(root), "--authority", str(authority), "--receipts", str(receipts)), env=PYENV))
+        checks.append(run(tcps("pack", "list", "--root", str(root)), env=PYENV))
+
+        work = root / "work.json"
+        work.write_text(json.dumps({
+            "schema": "tcps.work.v1",
+            "subject": "release-witness",
+            "purpose": "prove exact receipted production",
+            "observations": [{"kind": "release", "value": "witness"}],
+            "actions": [{"op": "write_text", "path": "witness.txt", "content": "heijunka\n"}],
+        }), encoding="utf-8")
+        checks.append(run(tcps("make", str(work), "--authority", str(authority), "--root", str(root), "--receipts", str(receipts), "--plan-out", str(plan)), env=PYENV))
+        checks.append(run(tcps("wip", "--receipts", str(receipts)), env=PYENV))
+        checks.append(run(tcps("andon", "--receipts", str(receipts), "--root", str(root)), env=PYENV))
+        checks.append(run(tcps("metrics", "--receipts", str(receipts), "--root", str(root)), env=PYENV))
+        checks.append(run(tcps("standing", "--receipts", str(receipts), "--root", str(root)), env=PYENV))
+        checks.append(run(tcps("kaizen", "release validation", "retain the failing witness and repair the earliest boundary"), env=PYENV))
+        checks.append(run(tcps("replay", "--receipts", str(receipts), "--root", str(root)), env=PYENV))
 
     checks.append(run([sys.executable, "scripts/build_offline_bundle.py", "--check-determinism"]))
     failures = [item for item in checks if item["exit"] != 0]
@@ -86,7 +67,7 @@ def main() -> int:
         "subject": "tcps@1979.1.1",
         "checks": checks,
         "failure_count": len(failures),
-        "generation": "BLOCKED:GGEN_EXECUTION_NOT_OBSERVED",
+        "generation": "DELEGATED:EXACT_HEAD_GGEN_PROJECTION_JOB",
         "external_production": "UNKNOWN",
         "certification": "REFUSED:UNSUPPORTED_CLAIM",
         "state": "ALIVE" if not failures else "BUILD_BROKEN",

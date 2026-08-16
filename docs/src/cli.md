@@ -1,65 +1,70 @@
 # CLI
 
-## Initialize
+## Initialize the control boundary
 
 ```bash
 tcps init .
 ```
 
-This creates `.tcps/authority.json` and `.tcps/receipts.ndjson`. The default local authority admits `mkdir` and `write_text` under the initialized root and refuses irreversible actions.
+Initialization provisions `.tcps/authority.json` and the receipt ledger and returns `PARTIAL_ALIVE`. It is bootstrap/control-plane provisioning, not a claim that production work has been receipted.
 
-## Full cycle
+## Install standard work
 
 ```bash
-tcps run work.json --root .
+tcps pack install builtin:core-1979 --root .
 ```
 
-`run` executes the same bounded stages exposed separately below. It does not bypass stage laws.
+The built-in pack carries the EVE/English, WIZARD/中文, TELCO/日本語, and ROBOT/한국어 prompt projections. Installation compiles to bounded work and crosses the normal receipt boundary.
 
-## EVE
+## Pull a demand through the full line
+
+```bash
+tcps make work.json --root .
+```
+
+`make` performs the bounded cycle without bypassing its stages. `run` remains an equivalent full-cycle operator surface.
+
+## Stage surfaces
 
 ```bash
 tcps eve work.json --out .tcps/observation.json
-```
-
-Normalizes human-purpose input into an exact admitted observation with source digest. Malformed shapes and undeclared fields fail closed.
-
-## WIZARD
-
-```bash
 tcps wizard .tcps/observation.json --out .tcps/graph.json
-```
-
-Constructs reversible candidates. Unsupported operation types are refused here.
-
-## TELCO
-
-```bash
 tcps telco .tcps/graph.json --authority .tcps/authority.json --root . --out .tcps/plan.json
-```
-
-Applies WIP, operation, irreversibility, and root policy; then binds the plan to exact policy, graph, and root identities.
-
-## ROBOT
-
-```bash
 tcps robot .tcps/plan.json --authority .tcps/authority.json --root .
 ```
 
-Revalidates plan and authority, writes a durable pre-receipt, performs exactly one declared target mutation, makes that mutation durable, verifies the exact post-state, fsyncs the final receipt, then clears pending recovery state. Missing parent directories and symlink targets are refused rather than mutated implicitly.
+EVE admits observation, WIZARD constructs reversible candidates, TELCO selects/binds authority, and ROBOT performs exact PREPARE/DO/VERIFY/final-receipt work. A downstream role does not inherit the upstream role's semantic freedom.
 
-## Replay
+## Plant control
 
 ```bash
-tcps replay --root .
+tcps standard
+tcps kanban artifact "downstream needs artifact" --quantity 1
+tcps wip
+tcps andon
+tcps metrics
+tcps standing
+tcps kaizen "stop reason" "proposed standard-work change"
 ```
 
-Validates receipt identity, global sequence, predecessor edges, historical state transitions, current latest receipted consequences, and pending recovery state.
+These commands do not invent production state. WIP, Andon, metrics, and standing are evidence-derived. Kanban and Kaizen construct non-actuating control objects.
 
-## Recover
+## Packs
 
 ```bash
+tcps pack builtins
+tcps pack validate ./my-pack.json
+tcps pack install ./my-pack.json --root .
+tcps pack list --root .
+```
+
+Pack kinds unify workflow, integration, preset, extension, bundle, and standard-work packaging. Missing dependency closure, unsafe paths, unknown kinds, and digest drift fail closed. Remote acquisition is not ambient in v1979.1.1.
+
+## Replay and recovery
+
+```bash
+tcps replay --receipts .tcps/receipts.ndjson --root .
 tcps recover --receipts .tcps/receipts.ndjson --root .
 ```
 
-Use after interrupted actuation. New DO work is refused while a durable pre-receipt is unresolved. Recovery closes only states that can be proven from the pre-receipt, final ledger, and current world; ambiguous state is `BLOCKED`.
+Replay proves the current world against the receipt chain. Recovery resolves an interrupted PREPARE/DO/final-receipt interval only from durable evidence; ambiguous state is `BLOCKED`.

@@ -9,45 +9,19 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = [
-    "AGENTS.md",
-    "RELEASE_CONTROL.md",
-    "README.md",
-    "SECURITY.md",
-    "LEGAL.md",
-    "pyproject.toml",
-    "ggen.toml",
-    "ontology/tcps.ttl",
-    "authority/reconstitution.json",
-    "authority/release.json",
-    "authority/default-policy.json",
-    "product/PRD.md",
-    "architecture/ARD.md",
-    "validation/VALIDATION_THEOREM.md",
-    "governance/claims-register.md",
-    "governance/security.md",
-    "governance/privacy.md",
-    "governance/resilience.md",
-    "governance/change-management.md",
-    "operations/RUNBOOK.md",
-    "operations/SUPPORT.md",
-    "procurement/SUPPLY_CHAIN.md",
-    "schemas/work.schema.json",
-    "schemas/authority.schema.json",
-    "schemas/plan.schema.json",
-    "schemas/pre-receipt.schema.json",
-    "schemas/receipt.schema.json",
-    "src/tcps/cli.py",
-    "src/tcps/engine.py",
-    "src/tcps/ledger.py",
-    "src/tcps/receipt.py",
-    "src/tcps/replay.py",
-    "src/tcps/plant.py",
-    "src/tcps/packs.py",
-    "src/tcps/generated_contract.py",
-    "tests/test_ledger.py",
-    "tests/test_plant.py",
-    "tests/test_packs.py",
-    ".github/workflows/ci.yml",
+    "AGENTS.md", "RELEASE_CONTROL.md", "README.md", "SECURITY.md", "LEGAL.md",
+    "pyproject.toml", "ggen.toml", "ontology/tcps.ttl",
+    "authority/reconstitution.json", "authority/release.json", "authority/default-policy.json",
+    "product/PRD.md", "architecture/ARD.md", "validation/VALIDATION_THEOREM.md",
+    "governance/claims-register.md", "governance/security.md", "governance/privacy.md",
+    "governance/resilience.md", "governance/change-management.md",
+    "operations/RUNBOOK.md", "operations/SUPPORT.md", "procurement/SUPPLY_CHAIN.md",
+    "schemas/work.schema.json", "schemas/authority.schema.json", "schemas/plan.schema.json",
+    "schemas/pre-receipt.schema.json", "schemas/receipt.schema.json", "schemas/pack.schema.json",
+    "schemas/kanban.schema.json",
+    "src/tcps/cli.py", "src/tcps/engine.py", "src/tcps/ledger.py", "src/tcps/receipt.py",
+    "src/tcps/replay.py", "src/tcps/plant.py", "src/tcps/packs.py", "src/tcps/generated_contract.py",
+    "tests/test_ledger.py", "tests/test_plant.py", "tests/test_packs.py", ".github/workflows/ci.yml",
 ]
 
 
@@ -61,8 +35,7 @@ def main() -> int:
     missing = [path for path in REQUIRED if not (ROOT / path).exists()]
     check(not missing, "REQUIRED_SURFACE_MISSING", missing, failures)
 
-    pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    project = pyproject["project"]
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
     check(project["name"] == "tcps", "PACKAGE_IDENTITY_MISMATCH", project["name"], failures)
     check(project["version"] == "1979.1.1", "VERSION_MISMATCH", project["version"], failures)
     check(project.get("dependencies") == [], "RUNTIME_DEPENDENCIES_NOT_EMPTY", project.get("dependencies"), failures)
@@ -71,6 +44,10 @@ def main() -> int:
     check('VERSION = "1979.1.1"' in generated, "GENERATED_VERSION_MISMATCH", None, failures)
     for stage in ("OBSERVE", "ADMIT", "MODEL", "SELECT", "AUTHORIZE", "PREPARE", "ACTUATE", "VERIFY", "RECEIPT", "REOBSERVE"):
         check(f'"{stage}"' in generated, "GENERATED_STAGE_MISSING", stage, failures)
+
+    ontology = (ROOT / "ontology/tcps.ttl").read_text(encoding="utf-8")
+    for stage in ("OBSERVE", "ADMIT", "MODEL", "SELECT", "AUTHORIZE", "PREPARE", "ACTUATE", "VERIFY", "RECEIPT", "REOBSERVE"):
+        check(f'"{stage}"' in ontology, "ONTOLOGY_STAGE_MISSING", stage, failures)
 
     engine = (ROOT / "src/tcps/engine.py").read_text(encoding="utf-8")
     ledger = (ROOT / "src/tcps/ledger.py").read_text(encoding="utf-8")
@@ -88,6 +65,10 @@ def main() -> int:
         check(role in packs, "STRATIFIED_PROMPT_MISSING", role, failures)
     check("install_pack" in packs and "actuate(" in packs, "PACK_DO_BOUNDARY_MISSING", None, failures)
 
+    release = json.loads((ROOT / "authority/release.json").read_text(encoding="utf-8"))
+    for crown in ("fault_injection_failures", "plant_surface_failures", "pack_install_replay_failures", "pending_recovery", "ggen_projection_differences", "exact_head_ci_failures"):
+        check(release.get("required", {}).get(crown) == 0, "RELEASE_CROWN_MISSING", crown, failures)
+
     reconstitution = json.loads((ROOT / "authority/reconstitution.json").read_text(encoding="utf-8"))
     check(reconstitution["strategy"] == "fresh-tree-reconstitution", "RECONSTITUTION_STRATEGY_MISMATCH", reconstitution.get("strategy"), failures)
     check(reconstitution["target_version"] == "1979.1.1", "AUTHORITY_VERSION_MISMATCH", reconstitution.get("target_version"), failures)
@@ -95,20 +76,12 @@ def main() -> int:
     workflow_files = list((ROOT / ".github/workflows").glob("*.yml")) + list((ROOT / ".github/workflows").glob("*.yaml"))
     check(len(workflow_files) == 1, "WORKFLOW_COUNT_MISMATCH", [str(p.relative_to(ROOT)) for p in workflow_files], failures)
 
-    proc = subprocess.run(
-        [sys.executable, str(ROOT / "scripts/verify_reconstitution.py")],
-        cwd=ROOT,
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    proc = subprocess.run([sys.executable, str(ROOT / "scripts/verify_reconstitution.py")], cwd=ROOT, text=True, capture_output=True, check=False)
     check(proc.returncode == 0, "IDENTITY_ZERO_FAILED", proc.stdout + proc.stderr, failures)
 
     report = {
-        "schema": "tcps.repository-verifier.v1",
-        "version": "1979.1.1",
-        "required_surface_missing": len(missing),
-        "failures": failures,
+        "schema": "tcps.repository-verifier.v1", "version": "1979.1.1",
+        "required_surface_missing": len(missing), "failures": failures,
         "state": "ALIVE" if not failures else "BUILD_BROKEN",
     }
     print(json.dumps(report, sort_keys=True, indent=2))

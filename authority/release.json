@@ -8,6 +8,8 @@
     "source_compile_failures": 0,
     "unit_integration_failures": 0,
     "fault_injection_failures": 0,
+    "plant_surface_failures": 0,
+    "pack_install_replay_failures": 0,
     "real_cli_cycle_failures": 0,
     "receipt_chain_failures": 0,
     "pending_recovery": 0,
