@@ -20,7 +20,8 @@ query = { inline = """
 PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang WHERE {
+PREFIX tcps: <https://chatman.ai/ontology/tcps#>
+SELECT ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang ?dfcm_maximize ?dfcm_minimize ?dfcm_max_frontier ?dfcm_selection ?dfcm_irreversible ?dfcm_planner_authority ?dfcm_actuation ?dfcm_class_order ?dfcm_max_expedite ?dfcm_one_piece WHERE {
   <urn:tcps:system> a prov:Entity ; dcterms:title ?title ; dcterms:hasVersion ?version .
   <urn:tcps:stage:01> skos:notation ?s01 .
   <urn:tcps:stage:02> skos:notation ?s02 .
@@ -36,8 +37,19 @@ SELECT ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?e
   <urn:tcps:role:wizard> skos:notation ?wizard ; dcterms:language ?wizard_lang .
   <urn:tcps:role:telco> skos:notation ?telco ; dcterms:language ?telco_lang .
   <urn:tcps:role:robot> skos:notation ?robot ; dcterms:language ?robot_lang .
+  <urn:tcps:dfcm>
+    tcps:maximize ?dfcm_maximize ;
+    tcps:minimize ?dfcm_minimize ;
+    tcps:maxFrontier ?dfcm_max_frontier ;
+    tcps:selectionMode ?dfcm_selection ;
+    tcps:irreversibleSelections ?dfcm_irreversible ;
+    tcps:plannerAuthority ?dfcm_planner_authority ;
+    tcps:actuation ?dfcm_actuation ;
+    tcps:classOrder ?dfcm_class_order ;
+    tcps:maxExpediteInRow ?dfcm_max_expedite ;
+    tcps:onePiecePull ?dfcm_one_piece .
 }
-ORDER BY ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang
+ORDER BY ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang ?dfcm_maximize ?dfcm_minimize ?dfcm_max_frontier ?dfcm_selection ?dfcm_irreversible ?dfcm_planner_authority ?dfcm_actuation ?dfcm_class_order ?dfcm_max_expedite ?dfcm_one_piece
 LIMIT 1
 """ }
 template = { file = "templates/generated_contract.py.tera" }
@@ -50,7 +62,8 @@ query = { inline = """
 PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX dcterms: <http://purl.org/dc/terms/>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
-SELECT ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang WHERE {
+PREFIX tcps: <https://chatman.ai/ontology/tcps#>
+SELECT ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang ?dfcm_maximize ?dfcm_minimize ?dfcm_max_frontier ?dfcm_selection ?dfcm_irreversible ?dfcm_planner_authority ?dfcm_actuation ?dfcm_class_order ?dfcm_max_expedite ?dfcm_one_piece WHERE {
   <urn:tcps:system> a prov:Entity ; dcterms:title ?title ; dcterms:hasVersion ?version .
   <urn:tcps:stage:01> skos:notation ?s01 .
   <urn:tcps:stage:02> skos:notation ?s02 .
@@ -66,8 +79,19 @@ SELECT ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?e
   <urn:tcps:role:wizard> skos:notation ?wizard ; dcterms:language ?wizard_lang .
   <urn:tcps:role:telco> skos:notation ?telco ; dcterms:language ?telco_lang .
   <urn:tcps:role:robot> skos:notation ?robot ; dcterms:language ?robot_lang .
+  <urn:tcps:dfcm>
+    tcps:maximize ?dfcm_maximize ;
+    tcps:minimize ?dfcm_minimize ;
+    tcps:maxFrontier ?dfcm_max_frontier ;
+    tcps:selectionMode ?dfcm_selection ;
+    tcps:irreversibleSelections ?dfcm_irreversible ;
+    tcps:plannerAuthority ?dfcm_planner_authority ;
+    tcps:actuation ?dfcm_actuation ;
+    tcps:classOrder ?dfcm_class_order ;
+    tcps:maxExpediteInRow ?dfcm_max_expedite ;
+    tcps:onePiecePull ?dfcm_one_piece .
 }
-ORDER BY ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang
+ORDER BY ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang ?dfcm_maximize ?dfcm_minimize ?dfcm_max_frontier ?dfcm_selection ?dfcm_irreversible ?dfcm_planner_authority ?dfcm_actuation ?dfcm_class_order ?dfcm_max_expedite ?dfcm_one_piece
 LIMIT 1
 """ }
 template = { file = "templates/contract.md.tera" }
