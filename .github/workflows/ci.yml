@@ -31,10 +31,35 @@ jobs:
           cache: 'pip'
       - name: Install exact test toolchain
         run: python -m pip install -e '.[test]'
-      - name: Verify release candidate
-        run: python scripts/release_verifier.py
+      - name: Verify release candidate and preserve report
+        env:
+          SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p .tcps-ci
+          python scripts/release_verifier.py | tee .tcps-ci/verifier.json
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          report = json.loads(Path('.tcps-ci/verifier.json').read_text())
+          assert report['state'] == 'ALIVE'
+          subject = {
+              'schema': 'tcps.exact-subject.v1',
+              'subject_sha': os.environ['SUBJECT_SHA'],
+              'verifier_state': report['state'],
+              'failure_count': report['failure_count'],
+          }
+          Path('.tcps-ci/subject.json').write_text(json.dumps(subject, sort_keys=True, indent=2) + '\n')
+          PY
       - name: Verify working tree remains source-clean
         run: git diff --exit-code
+      - name: Preserve exact-head runtime receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: tcps-runtime-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .tcps-ci/
+          if-no-files-found: error
 
   projection:
     runs-on: ubuntu-24.04
@@ -65,3 +90,28 @@ jobs:
         run: ggen sync run
       - name: Assert generated projections are current
         run: git diff --exit-code -- src/tcps/generated_contract.py generated_contract.md
+      - name: Preserve exact-head projection receipt
+        env:
+          SUBJECT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p .tcps-ci
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          receipt = {
+              'schema': 'tcps.ggen-projection.v1',
+              'subject_sha': os.environ['SUBJECT_SHA'],
+              'projector_sha': '59c95cac18d49c62533918c906524be0fc4063ec',
+              'projection_differences': 0,
+              'state': 'ALIVE',
+          }
+          Path('.tcps-ci/projection.json').write_text(json.dumps(receipt, sort_keys=True, indent=2) + '\n')
+          PY
+      - name: Upload exact-head projection receipt
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: tcps-projection-${{ github.event.pull_request.head.sha || github.sha }}
+          path: .tcps-ci/projection.json
+          if-no-files-found: error
