@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import json
 
 import pytest
 
@@ -89,6 +90,12 @@ def test_plan_is_order_invariant_and_self_replaying():
     assert forward["irreversible_selections"] == 0
     assert len(forward["inputs"]) == 3
     assert forward["input_digest"].startswith("blake3:")
+
+
+def test_plan_survives_json_roundtrip_for_cli_replay():
+    record = plan([candidate("a", value=5, evidence=1), candidate("b", value=1, evidence=5)])
+    loaded = json.loads(json.dumps(record))
+    assert verify_plan(loaded)["state"] == "ALIVE"
 
 
 def test_plan_tampering_breaks_replay():
