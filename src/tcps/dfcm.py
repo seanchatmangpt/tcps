@@ -27,6 +27,10 @@ _ALLOWED_CANDIDATE_FIELDS = {
 }
 
 
+def _dfcm_payload() -> dict[str, Any]:
+    return {key: list(value) if isinstance(value, tuple) else value for key, value in DFCM.items()}
+
+
 def _refuse(code: str, object_id: str, law: str, observed: Any, expected: Any, repair: str) -> None:
     raise TCPSRefused(Refusal(code, object_id, law, observed, expected, repair))
 
@@ -210,7 +214,7 @@ def _plan_from_normalized(normalized: list[dict[str, Any]], *, downstream_wip: i
     inputs = sorted(normalized, key=lambda item: (item["work_id"], item["work_digest"]))
     body = {
         "schema": "tcps.dfcm-plan.v1",
-        "dfcm": DFCM,
+        "dfcm": _dfcm_payload(),
         "inputs": inputs,
         "input_digest": digest_object(inputs),
         "subjects": sorted({item["subject"] for item in inputs}),
