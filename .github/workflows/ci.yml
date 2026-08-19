@@ -64,6 +64,7 @@ jobs:
           name: tcps-runtime-${{ github.event.pull_request.head.sha || github.sha }}
           path: .tcps-ci/
           if-no-files-found: error
+          include-hidden-files: true
 
   projection:
     runs-on: ubuntu-24.04
@@ -122,3 +123,4 @@ jobs:
           name: tcps-projection-${{ github.event.pull_request.head.sha || github.sha }}
           path: .tcps-ci/projection.json
           if-no-files-found: error
+          include-hidden-files: true
