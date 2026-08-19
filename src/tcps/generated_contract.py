@@ -19,3 +19,15 @@ ROLES = {
     "TELCO": "ja-JP",
     "ROBOT": "ko-KR",
 }
+DFCM = {
+    "maximize": tuple("value,urgency,evidence".split(",")),
+    "minimize": tuple("risk,cost,cycle_time".split(",")),
+    "max_frontier": int("64"),
+    "selection": "deterministic-reversible",
+    "irreversible_selections": int("0"),
+    "planner_authority": "SELECT",
+    "actuation": "NONE",
+    "class_order": tuple("expedite,fixed_date,standard,debt".split(",")),
+    "max_expedite_in_row": int("1"),
+    "one_piece_pull": "true" == "true",
+}
