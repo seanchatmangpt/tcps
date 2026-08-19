@@ -1,0 +1,38 @@
+{
+  "protocol": "challenger-value/1",
+  "purpose": "Convert admitted production evidence into reversible buyer-specific Challenger framing without upgrading claim standing.",
+  "flow": ["TEACH", "REFRAME", "RATIONAL_IMPACT", "NEW_WAY", "PROOF", "TAKE_CONTROL"],
+  "evidence_kinds": ["OBSERVED", "VERIFIED", "INFERRED", "HYPOTHESIS"],
+  "dfcm": {
+    "expand_all_bounded_combinations": true,
+    "candidate_bound": 4096,
+    "pareto_dimensions": [
+      "evidence_density",
+      "buyer_relevance",
+      "falsifiability",
+      "materiality",
+      "claim_risk"
+    ],
+    "irreversible_selections": 0
+  },
+  "authority": {
+    "SELECT": "reversible-presentation",
+    "CONSTRUCT": "brief-only",
+    "DO": "none",
+    "actuation": false
+  },
+  "refusals": [
+    "MALFORMED_CLAIM",
+    "UNSUPPORTED_PHASE",
+    "UNSUPPORTED_CLAIM",
+    "METRIC_WITHOUT_SOURCE",
+    "OUTCOME_AS_FACT",
+    "PROOF_WITHOUT_SOURCE",
+    "PROOF_WITHOUT_EXACT_SUBJECT",
+    "ALIVE_WITHOUT_STANDING",
+    "UNSUPPORTED_AUDIENCE",
+    "DUPLICATE_CLAIM_ID",
+    "CANDIDATE_BOUND_EXCEEDED",
+    "EMPTY_FRONTIER"
+  ]
+}
