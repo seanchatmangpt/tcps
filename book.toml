@@ -1,0 +1,9 @@
+[book]
+title = "Toyota Code Production System 1979"
+authors = ["Sean Chatman"]
+language = "en"
+src = "docs/src"
+
+[build]
+build-dir = "docs/book"
+create-missing = false

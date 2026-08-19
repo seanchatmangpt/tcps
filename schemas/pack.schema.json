@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tcps:schema:pack:v1",
+  "title": "TCPS Production Pack v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "pack_id", "version", "kind", "requires", "files"],
+  "properties": {
+    "schema": {"const": "tcps.pack.v1"},
+    "pack_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,62}$"},
+    "version": {"type": "string", "minLength": 1},
+    "kind": {"enum": ["workflow", "integration", "preset", "extension", "bundle", "standard-work"]},
+    "requires": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,62}$"}
+    },
+    "files": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {"type": "string"}
+    },
+    "pack_digest": {"type": "string", "pattern": "^blake3:[0-9a-f]{64}$"}
+  }
+}

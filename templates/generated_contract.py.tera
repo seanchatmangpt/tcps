@@ -1,0 +1,33 @@
+"""Generated from ontology/tcps.ttl by ggen. Do not hand-edit."""
+SYSTEM_NAME = "{{ title }}"
+VERSION = "{{ version }}"
+CYCLE = (
+    "{{ s01 }}",
+    "{{ s02 }}",
+    "{{ s03 }}",
+    "{{ s04 }}",
+    "{{ s05 }}",
+    "{{ s06 }}",
+    "{{ s07 }}",
+    "{{ s08 }}",
+    "{{ s09 }}",
+    "{{ s10 }}",
+)
+ROLES = {
+    "{{ eve }}": "{{ eve_lang }}",
+    "{{ wizard }}": "{{ wizard_lang }}",
+    "{{ telco }}": "{{ telco_lang }}",
+    "{{ robot }}": "{{ robot_lang }}",
+}
+DFCM = {
+    "maximize": tuple("{{ dfcm_maximize }}".split(",")),
+    "minimize": tuple("{{ dfcm_minimize }}".split(",")),
+    "max_frontier": int("{{ dfcm_max_frontier }}"),
+    "selection": "{{ dfcm_selection }}",
+    "irreversible_selections": int("{{ dfcm_irreversible }}"),
+    "planner_authority": "{{ dfcm_planner_authority }}",
+    "actuation": "{{ dfcm_actuation }}",
+    "class_order": tuple("{{ dfcm_class_order }}".split(",")),
+    "max_expedite_in_row": int("{{ dfcm_max_expedite }}"),
+    "one_piece_pull": "{{ dfcm_one_piece }}" == "true",
+}

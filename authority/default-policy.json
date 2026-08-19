@@ -1,0 +1,8 @@
+{
+  "schema": "tcps.authority.v1",
+  "authority_id": "repository-default",
+  "allowed_roots": ["."],
+  "allowed_operations": ["mkdir", "write_text"],
+  "max_actions": 64,
+  "allow_irreversible": false
+}

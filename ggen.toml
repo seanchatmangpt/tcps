@@ -1,0 +1,99 @@
+[project]
+name = "tcps"
+version = "1979.1.1"
+description = "Toyota Code Production System 1979"
+
+[ontology]
+source = "ontology/tcps.ttl"
+
+[generation]
+output_dir = "."
+
+[inference]
+rules = [
+  { name = "normalize", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } ORDER BY ?s ?p ?o" }
+]
+
+[[generation.rules]]
+name = "python-contract"
+query = { inline = """
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX tcps: <https://chatman.ai/ontology/tcps#>
+SELECT ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang ?dfcm_maximize ?dfcm_minimize ?dfcm_max_frontier ?dfcm_selection ?dfcm_irreversible ?dfcm_planner_authority ?dfcm_actuation ?dfcm_class_order ?dfcm_max_expedite ?dfcm_one_piece WHERE {
+  <urn:tcps:system> a prov:Entity ; dcterms:title ?title ; dcterms:hasVersion ?version .
+  <urn:tcps:stage:01> skos:notation ?s01 .
+  <urn:tcps:stage:02> skos:notation ?s02 .
+  <urn:tcps:stage:03> skos:notation ?s03 .
+  <urn:tcps:stage:04> skos:notation ?s04 .
+  <urn:tcps:stage:05> skos:notation ?s05 .
+  <urn:tcps:stage:06> skos:notation ?s06 .
+  <urn:tcps:stage:07> skos:notation ?s07 .
+  <urn:tcps:stage:08> skos:notation ?s08 .
+  <urn:tcps:stage:09> skos:notation ?s09 .
+  <urn:tcps:stage:10> skos:notation ?s10 .
+  <urn:tcps:role:eve> skos:notation ?eve ; dcterms:language ?eve_lang .
+  <urn:tcps:role:wizard> skos:notation ?wizard ; dcterms:language ?wizard_lang .
+  <urn:tcps:role:telco> skos:notation ?telco ; dcterms:language ?telco_lang .
+  <urn:tcps:role:robot> skos:notation ?robot ; dcterms:language ?robot_lang .
+  <urn:tcps:dfcm>
+    tcps:maximize ?dfcm_maximize ;
+    tcps:minimize ?dfcm_minimize ;
+    tcps:maxFrontier ?dfcm_max_frontier ;
+    tcps:selectionMode ?dfcm_selection ;
+    tcps:irreversibleSelections ?dfcm_irreversible ;
+    tcps:plannerAuthority ?dfcm_planner_authority ;
+    tcps:actuation ?dfcm_actuation ;
+    tcps:classOrder ?dfcm_class_order ;
+    tcps:maxExpediteInRow ?dfcm_max_expedite ;
+    tcps:onePiecePull ?dfcm_one_piece .
+}
+ORDER BY ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang ?dfcm_maximize ?dfcm_minimize ?dfcm_max_frontier ?dfcm_selection ?dfcm_irreversible ?dfcm_planner_authority ?dfcm_actuation ?dfcm_class_order ?dfcm_max_expedite ?dfcm_one_piece
+LIMIT 1
+""" }
+template = { file = "templates/generated_contract.py.tera" }
+output_file = "src/tcps/generated_contract.py"
+mode = "Overwrite"
+
+[[generation.rules]]
+name = "contract-doc"
+query = { inline = """
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX tcps: <https://chatman.ai/ontology/tcps#>
+SELECT ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang ?dfcm_maximize ?dfcm_minimize ?dfcm_max_frontier ?dfcm_selection ?dfcm_irreversible ?dfcm_planner_authority ?dfcm_actuation ?dfcm_class_order ?dfcm_max_expedite ?dfcm_one_piece WHERE {
+  <urn:tcps:system> a prov:Entity ; dcterms:title ?title ; dcterms:hasVersion ?version .
+  <urn:tcps:stage:01> skos:notation ?s01 .
+  <urn:tcps:stage:02> skos:notation ?s02 .
+  <urn:tcps:stage:03> skos:notation ?s03 .
+  <urn:tcps:stage:04> skos:notation ?s04 .
+  <urn:tcps:stage:05> skos:notation ?s05 .
+  <urn:tcps:stage:06> skos:notation ?s06 .
+  <urn:tcps:stage:07> skos:notation ?s07 .
+  <urn:tcps:stage:08> skos:notation ?s08 .
+  <urn:tcps:stage:09> skos:notation ?s09 .
+  <urn:tcps:stage:10> skos:notation ?s10 .
+  <urn:tcps:role:eve> skos:notation ?eve ; dcterms:language ?eve_lang .
+  <urn:tcps:role:wizard> skos:notation ?wizard ; dcterms:language ?wizard_lang .
+  <urn:tcps:role:telco> skos:notation ?telco ; dcterms:language ?telco_lang .
+  <urn:tcps:role:robot> skos:notation ?robot ; dcterms:language ?robot_lang .
+  <urn:tcps:dfcm>
+    tcps:maximize ?dfcm_maximize ;
+    tcps:minimize ?dfcm_minimize ;
+    tcps:maxFrontier ?dfcm_max_frontier ;
+    tcps:selectionMode ?dfcm_selection ;
+    tcps:irreversibleSelections ?dfcm_irreversible ;
+    tcps:plannerAuthority ?dfcm_planner_authority ;
+    tcps:actuation ?dfcm_actuation ;
+    tcps:classOrder ?dfcm_class_order ;
+    tcps:maxExpediteInRow ?dfcm_max_expedite ;
+    tcps:onePiecePull ?dfcm_one_piece .
+}
+ORDER BY ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang ?dfcm_maximize ?dfcm_minimize ?dfcm_max_frontier ?dfcm_selection ?dfcm_irreversible ?dfcm_planner_authority ?dfcm_actuation ?dfcm_class_order ?dfcm_max_expedite ?dfcm_one_piece
+LIMIT 1
+""" }
+template = { file = "templates/contract.md.tera" }
+output_file = "generated_contract.md"
+mode = "Overwrite"

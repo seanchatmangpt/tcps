@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tcps:schema:pre-receipt:v1",
+  "title": "TCPS Pre-Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "sequence",
+    "previous",
+    "subject",
+    "authority",
+    "intent",
+    "plan_digest",
+    "root",
+    "operation",
+    "before",
+    "expected",
+    "pre_receipt_id"
+  ],
+  "properties": {
+    "schema": {"const": "tcps.pre-receipt.v1"},
+    "sequence": {"type": "integer", "minimum": 1},
+    "previous": {"type": ["string", "null"]},
+    "subject": {"type": "string", "minLength": 1},
+    "authority": {"type": "string", "pattern": "^blake3:[0-9a-f]{64}$"},
+    "intent": {"type": "string", "pattern": "^blake3:[0-9a-f]{64}$"},
+    "plan_digest": {"type": "string", "pattern": "^blake3:[0-9a-f]{64}$"},
+    "root": {"type": "string", "minLength": 1},
+    "operation": {"type": "object"},
+    "before": {"type": "object"},
+    "expected": {"type": "object"},
+    "pre_receipt_id": {"type": "string", "pattern": "^blake3:[0-9a-f]{64}$"}
+  }
+}

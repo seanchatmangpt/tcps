@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tcps:schema:authority:v1",
+  "title": "TCPS Authority v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authority_id", "allowed_roots", "allowed_operations", "max_actions", "allow_irreversible"],
+  "properties": {
+    "schema": {"const": "tcps.authority.v1"},
+    "authority_id": {"type": "string", "minLength": 1},
+    "allowed_roots": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "allowed_operations": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["mkdir", "write_text", "remove"]}
+    },
+    "max_actions": {"type": "integer", "minimum": 0, "maximum": 10000},
+    "allow_irreversible": {"type": "boolean"}
+  }
+}

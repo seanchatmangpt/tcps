@@ -1,0 +1,29 @@
+# {{ title }} — generated contract
+
+Version: `{{ version }}`
+
+Production cycle:
+
+`{{ s01 }} → {{ s02 }} → {{ s03 }} → {{ s04 }} → {{ s05 }} → {{ s06 }} → {{ s07 }} → {{ s08 }} → {{ s09 }} → {{ s10 }}`
+
+Role projections:
+
+- `{{ eve }}` — `{{ eve_lang }}`
+- `{{ wizard }}` — `{{ wizard_lang }}`
+- `{{ telco }}` — `{{ telco_lang }}`
+- `{{ robot }}` — `{{ robot_lang }}`
+
+DfCM production law:
+
+- maximize: `{{ dfcm_maximize }}`
+- minimize: `{{ dfcm_minimize }}`
+- bounded frontier: `{{ dfcm_max_frontier }}`
+- selection: `{{ dfcm_selection }}`
+- irreversible selections: `{{ dfcm_irreversible }}`
+- planner authority: `{{ dfcm_planner_authority }}`
+- planner actuation: `{{ dfcm_actuation }}`
+- class order: `{{ dfcm_class_order }}`
+- max expedite in row: `{{ dfcm_max_expedite }}`
+- one-piece pull: `{{ dfcm_one_piece }}`
+
+This file is a projection. `ontology/tcps.ttl` remains the semantic source.

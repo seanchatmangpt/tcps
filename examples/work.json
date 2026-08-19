@@ -1,0 +1,12 @@
+{
+  "schema": "tcps.work.v1",
+  "subject": "example",
+  "purpose": "manufacture one receipted example artifact",
+  "observations": [
+    {"kind": "request", "value": "create output/example.txt"}
+  ],
+  "actions": [
+    {"op": "mkdir", "path": "output"},
+    {"op": "write_text", "path": "output/example.txt", "content": "kaizen\n"}
+  ]
+}

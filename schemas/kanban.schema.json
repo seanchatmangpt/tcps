@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tcps:schema:kanban:v1",
+  "title": "TCPS Kanban v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "customer_station", "subject", "purpose", "quantity", "due_tick", "kanban_digest", "state"],
+  "properties": {
+    "schema": {"const": "tcps.kanban.v1"},
+    "customer_station": {"const": "STANDING"},
+    "subject": {"type": "string", "minLength": 1},
+    "purpose": {"type": "string", "minLength": 1},
+    "quantity": {"type": "integer", "minimum": 1},
+    "due_tick": {"type": ["integer", "null"], "minimum": 0},
+    "kanban_digest": {"type": "string", "pattern": "^blake3:[0-9a-f]{64}$"},
+    "state": {"const": "PARTIAL_ALIVE"}
+  }
+}

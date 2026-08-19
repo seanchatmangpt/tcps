@@ -1,0 +1,22 @@
+{
+  "schema": "tcps.reconstitution.v1",
+  "repository": "seanchatmangpt/tcps",
+  "base_commit": "bf88c9f9a82fa370c7a7257aa2b3cf10b457b65c",
+  "base_tree": "76f0ac8eb6a67e8c684f0615cd9791319c422d5b",
+  "target_version": "1979.1.1",
+  "foundry": {
+    "repository": "seanchatmangpt/ggen-legacy",
+    "commit": "49c3a1eddf3d90560b9471573b6455dc240fe752"
+  },
+  "projector": {
+    "repository": "seanchatmangpt/ggen",
+    "commit": "59c95cac18d49c62533918c906524be0fc4063ec",
+    "manifest": "ggen.toml",
+    "ontology": "ontology/tcps.ttl"
+  },
+  "target_identity": "Toyota Code Production System 1979",
+  "strategy": "fresh-tree-reconstitution",
+  "legacy_identity_policy": "zero-residue",
+  "release_boundary": "draft-pull-request",
+  "standing": "PARTIAL_ALIVE"
+}

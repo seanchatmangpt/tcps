@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:tcps:schema:plan:v1",
+  "title": "TCPS Authorized Plan v1",
+  "type": "object",
+  "required": ["schema", "subject", "graph_digest", "authority_digest", "root", "selected", "stage", "language", "plan_digest"],
+  "properties": {
+    "schema": {"const": "tcps.plan.v1"},
+    "subject": {"type": "string"},
+    "graph_digest": {"type": "string", "pattern": "^blake3:[0-9a-f]{64}$"},
+    "authority_digest": {"type": "string", "pattern": "^blake3:[0-9a-f]{64}$"},
+    "root": {"type": "string"},
+    "selected": {"type": "array", "items": {"type": "object"}},
+    "stage": {"const": "TELCO"},
+    "language": {"const": "ja-JP"},
+    "plan_digest": {"type": "string", "pattern": "^blake3:[0-9a-f]{64}$"}
+  }
+}
