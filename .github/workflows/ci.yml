@@ -39,16 +39,20 @@ jobs:
           mkdir -p .tcps-ci
           python scripts/release_verifier.py | tee .tcps-ci/verifier.json
           python - <<'PY'
+          import hashlib
           import json
           import os
           from pathlib import Path
-          report = json.loads(Path('.tcps-ci/verifier.json').read_text())
+          verifier_path = Path('.tcps-ci/verifier.json')
+          verifier_bytes = verifier_path.read_bytes()
+          report = json.loads(verifier_bytes)
           assert report['state'] == 'ALIVE'
           subject = {
               'schema': 'tcps.exact-subject.v1',
               'subject_sha': os.environ['SUBJECT_SHA'],
               'verifier_state': report['state'],
               'failure_count': report['failure_count'],
+              'verifier_sha256': hashlib.sha256(verifier_bytes).hexdigest(),
           }
           Path('.tcps-ci/subject.json').write_text(json.dumps(subject, sort_keys=True, indent=2) + '\n')
           PY
@@ -97,6 +101,7 @@ jobs:
           set -euo pipefail
           mkdir -p .tcps-ci
           python - <<'PY'
+          import hashlib
           import json
           import os
           from pathlib import Path
@@ -105,6 +110,8 @@ jobs:
               'subject_sha': os.environ['SUBJECT_SHA'],
               'projector_sha': '59c95cac18d49c62533918c906524be0fc4063ec',
               'projection_differences': 0,
+              'generated_contract_py_sha256': hashlib.sha256(Path('src/tcps/generated_contract.py').read_bytes()).hexdigest(),
+              'generated_contract_md_sha256': hashlib.sha256(Path('generated_contract.md').read_bytes()).hexdigest(),
               'state': 'ALIVE',
           }
           Path('.tcps-ci/projection.json').write_text(json.dumps(receipt, sort_keys=True, indent=2) + '\n')
