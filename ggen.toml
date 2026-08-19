@@ -11,7 +11,7 @@ output_dir = "."
 
 [inference]
 rules = [
-  { name = "normalize", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }" }
+  { name = "normalize", construct = "CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o } ORDER BY ?s ?p ?o" }
 ]
 
 [[generation.rules]]
@@ -37,6 +37,7 @@ SELECT ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?e
   <urn:tcps:role:telco> skos:notation ?telco ; dcterms:language ?telco_lang .
   <urn:tcps:role:robot> skos:notation ?robot ; dcterms:language ?robot_lang .
 }
+ORDER BY ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang
 LIMIT 1
 """ }
 template = { file = "templates/generated_contract.py.tera" }
@@ -66,6 +67,7 @@ SELECT ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?e
   <urn:tcps:role:telco> skos:notation ?telco ; dcterms:language ?telco_lang .
   <urn:tcps:role:robot> skos:notation ?robot ; dcterms:language ?robot_lang .
 }
+ORDER BY ?title ?version ?s01 ?s02 ?s03 ?s04 ?s05 ?s06 ?s07 ?s08 ?s09 ?s10 ?eve ?eve_lang ?wizard ?wizard_lang ?telco ?telco_lang ?robot ?robot_lang
 LIMIT 1
 """ }
 template = { file = "templates/contract.md.tera" }
