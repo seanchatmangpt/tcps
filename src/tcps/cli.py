@@ -7,6 +7,11 @@ from typing import Any
 
 from .authority import load_authority
 from .canonical import load_json, write_json
+from .dfcm import bottleneck as dfcm_bottleneck
+from .dfcm import flow_metrics as dfcm_flow_metrics
+from .dfcm import kaizen_from_bottleneck as dfcm_kaizen
+from .dfcm import plan as dfcm_plan
+from .dfcm import verify_plan as verify_dfcm_plan
 from .engine import actuate, construct, observe, recover, select_and_authorize
 from .generated_contract import SYSTEM_NAME, VERSION
 from .model import TCPSRefused
@@ -91,6 +96,35 @@ def _parser() -> argparse.ArgumentParser:
     kaizen_parser.add_argument("reason")
     kaizen_parser.add_argument("proposal")
 
+    dfcm = sub.add_parser("dfcm", help="govern the reversible production frontier")
+    dfcm_sub = dfcm.add_subparsers(dest="dfcm_command", required=True)
+
+    dfcm_plan_parser = dfcm_sub.add_parser("plan", help="manufacture a deterministic Pareto/heijunka pull plan")
+    dfcm_plan_parser.add_argument("queue")
+    dfcm_plan_parser.add_argument("--downstream-wip", type=int, default=0)
+    dfcm_plan_parser.add_argument("--downstream-limit", type=int, default=1)
+    dfcm_plan_parser.add_argument("--andon-active", action="store_true")
+    dfcm_plan_parser.add_argument("--out")
+
+    dfcm_verify_parser = dfcm_sub.add_parser("verify", help="replay and verify a DfCM planning receipt")
+    dfcm_verify_parser.add_argument("plan")
+
+    dfcm_flow_parser = dfcm_sub.add_parser("flow", help="derive takt, Little's Law, and flow-efficiency evidence")
+    dfcm_flow_parser.add_argument("--available-ticks", required=True, type=float)
+    dfcm_flow_parser.add_argument("--demand", required=True, type=float)
+    dfcm_flow_parser.add_argument("--throughput", required=True, type=float)
+    dfcm_flow_parser.add_argument("--wip", required=True, type=float)
+    dfcm_flow_parser.add_argument("--observed-cycle", type=float)
+    dfcm_flow_parser.add_argument("--touch", type=float)
+    dfcm_flow_parser.add_argument("--lead", type=float)
+
+    dfcm_bottleneck_parser = dfcm_sub.add_parser("bottleneck", help="observe the deterministic production constraint")
+    dfcm_bottleneck_parser.add_argument("stages")
+    dfcm_bottleneck_parser.add_argument("--out")
+
+    dfcm_kaizen_parser = dfcm_sub.add_parser("kaizen", help="manufacture a non-actuating Kaizen candidate from a bottleneck")
+    dfcm_kaizen_parser.add_argument("bottleneck")
+
     pack = sub.add_parser("pack", help="manage receipted production packs")
     pack_sub = pack.add_subparsers(dest="pack_command", required=True)
     pack_sub.add_parser("builtins", help="list built-in production packs")
@@ -112,6 +146,24 @@ def _write_or_emit(value: Any, output: str | None) -> None:
         write_json(output, value)
     else:
         _emit(value)
+
+
+def _dfcm_queue(path: str) -> list[dict[str, Any]]:
+    value = load_json(path)
+    if not isinstance(value, dict) or value.get("schema") != "tcps.dfcm-queue.v1" or not isinstance(value.get("candidates"), list):
+        raise ValueError("DfCM queue must be tcps.dfcm-queue.v1 with a candidates array")
+    if set(value) != {"schema", "candidates"}:
+        raise ValueError("DfCM queue contains undeclared fields")
+    return value["candidates"]
+
+
+def _dfcm_stages(path: str) -> list[dict[str, Any]]:
+    value = load_json(path)
+    if not isinstance(value, dict) or value.get("schema") != "tcps.dfcm-stages.v1" or not isinstance(value.get("stages"), list):
+        raise ValueError("DfCM stages must be tcps.dfcm-stages.v1 with a stages array")
+    if set(value) != {"schema", "stages"}:
+        raise ValueError("DfCM stage observation contains undeclared fields")
+    return value["stages"]
 
 
 def _init(path: Path) -> dict[str, Any]:
@@ -213,6 +265,39 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "kaizen":
             _emit(kaizen(args.reason, args.proposal))
             return 0
+        if args.command == "dfcm":
+            if args.dfcm_command == "plan":
+                result = dfcm_plan(
+                    _dfcm_queue(args.queue),
+                    downstream_wip=args.downstream_wip,
+                    downstream_limit=args.downstream_limit,
+                    andon_active=args.andon_active,
+                )
+                _write_or_emit(result, args.out)
+                return 0 if result["state"] == "PARTIAL_ALIVE" else 3
+            if args.dfcm_command == "verify":
+                result = verify_dfcm_plan(load_json(args.plan))
+                _emit(result)
+                return 0 if result["state"] == "ALIVE" else 3
+            if args.dfcm_command == "flow":
+                result = dfcm_flow_metrics(
+                    args.available_ticks,
+                    args.demand,
+                    args.throughput,
+                    args.wip,
+                    observed_cycle_ticks=args.observed_cycle,
+                    touch_ticks=args.touch,
+                    lead_ticks=args.lead,
+                )
+                _emit(result)
+                return 0
+            if args.dfcm_command == "bottleneck":
+                result = dfcm_bottleneck(_dfcm_stages(args.stages))
+                _write_or_emit(result, args.out)
+                return 0
+            if args.dfcm_command == "kaizen":
+                _emit(dfcm_kaizen(load_json(args.bottleneck)))
+                return 0
         if args.command == "pack":
             if args.pack_command == "builtins":
                 core = builtin_pack("core-1979")
