@@ -19,3 +19,15 @@ ROLES = {
     "{{ telco }}": "{{ telco_lang }}",
     "{{ robot }}": "{{ robot_lang }}",
 }
+DFCM = {
+    "maximize": tuple("{{ dfcm_maximize }}".split(",")),
+    "minimize": tuple("{{ dfcm_minimize }}".split(",")),
+    "max_frontier": int("{{ dfcm_max_frontier }}"),
+    "selection": "{{ dfcm_selection }}",
+    "irreversible_selections": int("{{ dfcm_irreversible }}"),
+    "planner_authority": "{{ dfcm_planner_authority }}",
+    "actuation": "{{ dfcm_actuation }}",
+    "class_order": tuple("{{ dfcm_class_order }}".split(",")),
+    "max_expedite_in_row": int("{{ dfcm_max_expedite }}"),
+    "one_piece_pull": "{{ dfcm_one_piece }}" == "true",
+}
