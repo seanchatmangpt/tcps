@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any
 
 from .canonical import digest_object
-from .generated_contract import CYCLE, ROLES, SYSTEM_NAME, VERSION
+from .generated_contract import CYCLE, DFCM, ROLES, SYSTEM_NAME, VERSION
 from .ledger import load_pending, load_receipts
 from .receipt import verify_chain
 from .replay import replay
@@ -18,9 +18,15 @@ def standard_work() -> dict[str, Any]:
         "version": VERSION,
         "cycle": list(CYCLE),
         "roles": ROLES,
+        "dfcm": DFCM,
         "laws": [
             "downstream-is-customer",
             "selection-is-not-execution",
+            "preserve-lawful-frontier-before-selection",
+            "one-failed-edge-is-not-graph-failure",
+            "pull-only-with-downstream-capacity",
+            "andon-stops-pull-not-observation",
+            "kaizen-has-no-ambient-authority",
             "no-unreceipted-actuation",
             "unknown-is-not-admitted",
             "generated-is-not-verified",
