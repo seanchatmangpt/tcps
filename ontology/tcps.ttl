@@ -2,13 +2,15 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix dqv: <http://www.w3.org/ns/dqv#> .
+@prefix tcps: <https://chatman.ai/ontology/tcps#> .
 
 <urn:tcps:system>
     a prov:Entity ;
     dcterms:title "Toyota Code Production System 1979" ;
     dcterms:hasVersion "1979.1.1" ;
     dcterms:description "A deterministic code-production system that separates observation, admission, reversible construction, selection, authorization, durable preparation, actuation, verification, receipt, recovery, and replay." ;
-    dcterms:conformsTo <urn:tcps:law:zero-unreceipted-actuation> .
+    dcterms:conformsTo <urn:tcps:law:zero-unreceipted-actuation>, <urn:tcps:law:dfcm-frontier> .
 
 <urn:tcps:cycle> a skos:ConceptScheme ;
     dcterms:title "TCPS production cycle" .
@@ -26,10 +28,41 @@
 
 <urn:tcps:role:eve> a prov:Agent ; skos:notation "EVE" ; dcterms:language "en" ; dcterms:description "Human-purpose intake and observation admission." .
 <urn:tcps:role:wizard> a prov:Agent ; skos:notation "WIZARD" ; dcterms:language "zh-CN" ; dcterms:description "Manufacturing and reversible candidate construction." .
-<urn:tcps:role:telco> a prov:Agent ; skos:notation "TELCO" ; dcterms:language "ja-JP" ; dcterms:description "Capability routing, selection, and authority binding." .
+<urn:tcps:role:telco> a prov:Agent ; skos:notation "TELCO" ; dcterms:language "ja-JP" ; dcterms:description "Capability routing, reversible selection, and authority binding." .
 <urn:tcps:role:robot> a prov:Agent ; skos:notation "ROBOT" ; dcterms:language "ko-KR" ; dcterms:description "Exact execution, verification, receipt, and recovery handoff." .
 
 <urn:tcps:law:zero-unreceipted-actuation>
     a odrl:Policy ;
     dcterms:title "Zero unreceipted actuation" ;
     dcterms:description "No consequential actuation has production standing unless durable prepared intent exists before DO and the exact verified consequence is closed by a tamper-evident final receipt." .
+
+<urn:tcps:law:dfcm-frontier>
+    a odrl:Policy ;
+    dcterms:title "Combinatorial maximalism before irreversible selection" ;
+    dcterms:description "Preserve the bounded Pareto frontier of lawful work-order candidates before deterministic reversible selection. Planner output has SELECT authority only and no actuation authority." .
+
+<urn:tcps:dfcm>
+    a prov:Entity ;
+    dcterms:title "DfCM production frontier standard" ;
+    tcps:maximize "value,urgency,evidence" ;
+    tcps:minimize "risk,cost,cycle_time" ;
+    tcps:maxFrontier "64" ;
+    tcps:selectionMode "deterministic-reversible" ;
+    tcps:irreversibleSelections "0" ;
+    tcps:plannerAuthority "SELECT" ;
+    tcps:actuation "NONE" ;
+    tcps:classOrder "expedite,fixed_date,standard,debt" ;
+    tcps:maxExpediteInRow "1" ;
+    tcps:onePiecePull "true" .
+
+<urn:tcps:concept:pareto-frontier> a skos:Concept ; skos:prefLabel "Pareto frontier"@en ; dcterms:description "Non-dominated lawful alternatives preserved before selection." .
+<urn:tcps:concept:heijunka> a skos:Concept ; skos:prefLabel "Heijunka schedule"@en ; dcterms:description "Deterministic leveling across class of service and value stream." .
+<urn:tcps:concept:kanban> a skos:Concept ; skos:prefLabel "Kanban pull"@en ; dcterms:description "Downstream-capacity-governed one-piece pull signal." .
+<urn:tcps:concept:andon> a skos:Concept ; skos:prefLabel "Andon"@en ; dcterms:description "Stop-the-line signal that blocks pull without erasing lawful alternatives." .
+<urn:tcps:concept:bottleneck> a skos:Concept ; skos:prefLabel "Bottleneck observation"@en ; dcterms:description "Deterministic observation of the constrained production stage." .
+<urn:tcps:concept:kaizen> a skos:Concept ; skos:prefLabel "Kaizen proposal"@en ; dcterms:description "Reversible improvement candidate with no ambient authority or actuation." .
+
+<urn:tcps:dimension:flow> a dqv:Dimension ; skos:prefLabel "Production flow"@en .
+<urn:tcps:metric:takt> a dqv:Metric ; dqv:inDimension <urn:tcps:dimension:flow> ; skos:prefLabel "Takt time"@en .
+<urn:tcps:metric:little-law> a dqv:Metric ; dqv:inDimension <urn:tcps:dimension:flow> ; skos:prefLabel "Little's Law cycle time"@en .
+<urn:tcps:metric:flow-efficiency> a dqv:Metric ; dqv:inDimension <urn:tcps:dimension:flow> ; skos:prefLabel "Flow efficiency"@en .
